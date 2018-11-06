@@ -29,9 +29,9 @@ boardSize : 7,
 numOfShipsSunk : 0,
 
 ships : [
-	{locations : ["01","11","21"], hits : ["","",""]},
-	{locations : ["36","46","56"], hits : ["","",""]},
-	{locations : ["43","33","53"], hits : ["","",""]
+	{locations : ["0","0","0"], hits : ["","",""]},
+	{locations : ["0","0","0"], hits : ["","",""]},
+	{locations : ["0","0","0"], hits : ["","",""]
 }],
 
 fire: function (guess) {
@@ -46,9 +46,11 @@ fire: function (guess) {
 				view.displayMessage("You SUNK my ship!!!");
 				this.numOfShipsSunk++;
 			}
+
 			return true;
 		}
 	}
+	console.log("missed");
 	view.displayMiss(guess);
 	view.displayMessage("Hahaha You MISSED!")
 	return false;
@@ -61,6 +63,56 @@ isSunk : function (ship) {
 			}
 	}
 	return true;
+},
+
+generateShipLocation : function ()
+{
+	var locations;
+	for (var i = 0; i < this.numOfShips; i++) {
+	do {
+		locations = this.generateShip();
+
+	} while (this.collisionDetection(locations));
+		this.ships[i].locations = locations;
+	}
+},
+
+generateShip : function ()
+{
+	var direction = Math.floor(Math.random() * 2);
+	var row, col;
+
+	if (direction === 1) {
+		row = Math.floor(Math.random() * this.boardSize);
+		col = Math.floor(Math.random() * (this.boardSize - this.shipLength + 1));
+	}
+	else {
+		col = Math.floor(Math.random() * this.boardSize);
+		row = Math.floor(Math.random() * (this.boardSize - this.shipLength + 1));
+	}
+	var newShipLocation = [];
+	for (var i = 0; i < this.shipLength; i++) {
+		if (direction === 1) {
+			newShipLocation.push(row + '' + (col + i));
+		}
+		else {
+			newShipLocation.push(col + '' + (row + i));
+		}
+	}
+		return newShipLocation;
+},
+
+collisionDetection : function (location)
+{
+	for (var i = 0; i < this.shipLength; i++) {
+		var ship = this.ships[i];
+		for (var j = 0; j < location.length; j++) {
+			if (ship.locations.indexOf(location[j]) >= 0) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 };
@@ -100,16 +152,37 @@ var controller = {
 				view.displayMessage("You sunk all the ships in " + this.guesses + " guesses");
 			}
 		}
-	}
+	},
 
 };
 
-controller.processGuess("A6");
-controller.processGuess("B6");
-controller.processGuess("C6");
-controller.processGuess("C4");
-controller.processGuess("D4");
-controller.processGuess("E4");
-controller.processGuess("B0");
-controller.processGuess("B1");
-controller.processGuess("B2");
+function handleKeyPress(e) {
+	var fireButton = document.getElementById("fireButton");
+
+	e = e || window.event;
+	if (e.keycode === 13) {
+		fireButton.click();
+		return false;
+	}
+}
+
+function handleFireButton() {
+var guessinput = document.getElementById('guessInput');
+var guess = guessinput.value.toUpperCase();
+controller.processGuess(guess);
+
+guessinput.value = "";
+}
+
+function init() {
+var fireButton = document.getElementById("fireButton");
+fireButton.onclick = handleFireButton;
+
+var guessInput = document.getElementById("guessInput");
+guessInput.onkeypress = handleKeyPress;
+
+model.generateShipLocation();
+}
+
+
+window.onload = init;
